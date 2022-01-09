@@ -1,84 +1,79 @@
 from tkinter import *
 from tkinter import filedialog as FileDialog
 from io import open
-ruta = ""
 
-def new_file():
-    global ruta
-    mensaje.set("New File")
-    ruta= ""
-    texto.delete(1.0, END)
-    root.title("Notepad")
-
-def open_file():
-    global ruta
-    mensaje.set("Open File")
-    ruta = FileDialog.askopenfilename(initialdir = ".", filetype = (("Text File", "*.txt"),), title = "Open Text File")
-    
-    if ruta != "":
-        fichero = open(ruta, 'r')
-        contenido = fichero.read()
-        texto.delete(1.0, END)
-        texto.insert('insert', contenido)
-        fichero.close()
-        root.title(ruta + " - Notepad")
+class Notepad:
+    def __init__(self):
+        self.path = ""
         
-def save_file():
-    global ruta
-    if ruta != "":
-        contenido = texto.get(1.0, "end-1c" )
-        fichero = open(ruta, 'w+')
-        fichero.write(contenido)
-        fichero.close()
-        mensaje.set("File Saved Successfully")
-    else:
-        save_as()
+        self.root = Tk()
+        self.root.title("Notepad")
 
-def save_as():
-    global ruta
-    # mensaje.set("Save as")
-    fichero = FileDialog.asksaveasfile(title = "Save As", mode = "w", defaultextension = ".txt")
-    if fichero is not None:
-        ruta = fichero.name
-        contenido = texto.get(1.0, "end-1c" )
-        fichero = open(ruta, 'w+')
-        fichero.write(contenido)
-        fichero.close()
-        mensaje.set("File Saved Successfully")
-    else:
-        mensaje.set("Saved Failed")
-        ruta = ""
+        self.menubar = Menu(self.root)
+        self.filemenu = Menu(self.menubar, tearoff = 0)
 
-root = Tk()
-root.title("Notepad")
+        self.filemenu.add_command(label="New", command = self.NewFile )
+        self.filemenu.add_command(label="Open", command = self.OpenFile)
+        self.filemenu.add_command(label="Save", command = self.SaveFile)
+        self.filemenu.add_command(label="Save as", command = self.SaveAs)
+        self.filemenu.add_separator()
+        self.filemenu.add_command(label="Quit", command = self.root.quit)
 
-# Menu
-menubar = Menu(root)
-filemenu = Menu(menubar, tearoff = 0)
+        self.menubar.add_cascade(menu = self.filemenu, label = "File")
 
-filemenu.add_command(label="New", command = new_file)
-filemenu.add_command(label="Open", command = open_file)
-filemenu.add_command(label="Save", command = save_file)
-filemenu.add_command(label="Save as", command = save_as)
-filemenu.add_separator()
-filemenu.add_command(label="Quit", command = root.quit)
+        self.text = Text(self.root)
+        self.text.pack(fill = "both", expand = 1)
+        self.text.config(bd = 0, padx = 6, pady = 4, font = ("Consolas", 12), bg="#19232D", foreground="#06DE19")
 
-menubar.add_cascade(menu = filemenu, label = "File")
-                
-# Caja de texto
-texto = Text(root)
-texto.pack(fill = "both", expand = 1)
-texto.config(bd = 0, padx = 6, pady = 4, font = ("Consolas", 12), bg="#19232D", foreground="#06DE19")
+        self.message = StringVar()
+        self.message.set("Welcome")
 
-#
-mensaje = StringVar()
-mensaje.set("Welcome")
+        self.display = Label(self.root, textvar = self.message, justify = 'left')
+        self.display.pack(side = "left")
 
-monitor = Label(root, textvar = mensaje, justify = 'left')
-monitor.pack(side = "left")
+        self.root.config(menu = self.menubar)
+        
+        self.root.mainloop()
+    
+    def NewFile(self):
+        self.message.set("New File")
+        self.path = ""
+        self.text.delete(1.0, END)
+        self.root.title("Notepad")
+    
+    def OpenFile(self):
+        self.message.set("Open File")
+        self.path = FileDialog.askopenfilename(initialdir = ".", filetype = (("Text File", "*.txt"),), title = "Open Text File")
+        
+        if self.path != "":
+            file = open(self.path, 'r')
+            content = file.read()
+            self.text.delete(1.0, "end-1c")
+            self.text.insert('insert', content)
+            file.close()
+            self.root.title(self.path + " - Notepad")
+    
+    def SaveFile(self):
+        if self.path != "":
+            content = self.text.get(1.0, "end-1c" )
+            file = open(self.path, 'w+')
+            file.write(content)
+            file.close()
+            self.message.set("File Saved Successfully")
+        else:
+            self.SaveAs()
+    
+    def SaveAs(self):
+        file = FileDialog.asksaveasfile(title = "Save As", mode = "w", defaultextension = ".txt")
+        if file is not None:
+            self.path = file.name
+            content = self.text.get(1.0, "end-1c" )
+            file = open(self.path, 'w+')
+            file.write(content)
+            file.close()
+            self.message.set("File Saved Successfully")
+        else:
+            self.message.set("Saved Failed")
+            self.path = ""
 
-
-
-root.config(menu = menubar)
-# Ejecucuion de la aplicacion
-root.mainloop()
+notepad = Notepad()
